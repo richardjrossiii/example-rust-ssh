@@ -1,5 +1,4 @@
 use serde::Deserialize;
-use std::fs;
 use ssh2::Session;
 use anyhow::Result;
 use std::net::TcpStream;
@@ -13,8 +12,10 @@ struct Host {
 }
 
 fn main() -> Result<()> {
+    let process_args: Vec<_> = std::env::args().collect();
     let mut output = Vec::new();
-    let input = std::fs::read_to_string("input/hosts.json")?;
+    
+    let input = std::fs::read_to_string(&process_args[1])?;
     let commands_to_process: Vec<Host> = serde_json::from_str(&input)?;
 
     for command in commands_to_process {
@@ -27,7 +28,11 @@ fn main() -> Result<()> {
         let mut channel = sess.channel_session().unwrap();
         channel.exec(&command.command).unwrap();
         channel.read_to_end(&mut output).unwrap();
+
+        output.push(b'\n');
     }
+
+    println!("{}", String::from_utf8_lossy(&output));
 
     Ok(())
 }
