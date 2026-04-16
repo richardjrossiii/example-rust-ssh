@@ -3,6 +3,7 @@ use ssh2::Session;
 use anyhow::Result;
 use std::net::TcpStream;
 use std::io::Read;
+use std::path::Path;
 
 #[derive(Deserialize)]
 struct Host {
@@ -19,11 +20,17 @@ fn main() -> Result<()> {
     let commands_to_process: Vec<Host> = serde_json::from_str(&input)?;
 
     for command in commands_to_process {
-        let tcp = TcpStream::connect(format!("{}:{}", command.name, command.port)).unwrap();
+        let tcp = TcpStream::connect((command.name, command.port)).unwrap();
 
         let mut sess = Session::new().unwrap();
         sess.set_tcp_stream(tcp);
         sess.handshake().unwrap();
+        sess.userauth_pubkey_file(
+            "root", 
+            Some(Path::new("/root/.ssh/id_rsa.pub")), 
+            Path::new("/root/.ssh/id_rsa"),
+            None,
+        ).unwrap();
 
         let mut channel = sess.channel_session().unwrap();
         channel.exec(&command.command).unwrap();
