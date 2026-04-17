@@ -42,12 +42,12 @@ async fn main() -> Result<()> {
     let ouptuts = stream::iter(
         commands_to_process
             .iter()
-            .chunk_by(|command| &command.name)
+            .into_group_map_by(|command| &command.name)
             .into_iter(),
     )
-    .map(async |(_, commands)| {
+    .map(async |(_, commands_per_host)| {
         let mut output = String::new();
-        for command in commands {
+        for command in commands_per_host {
             let result = run_command(command).await?;
 
             output += &result;
