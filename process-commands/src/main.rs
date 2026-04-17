@@ -32,7 +32,7 @@ async fn run_command(command: &Host) -> Result<String> {
     Ok(result.stdout.to_string())
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     let process_args: Vec<_> = std::env::args().collect();
 
